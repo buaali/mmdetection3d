@@ -534,11 +534,11 @@ class FCOSMono3DHead(AnchorFreeMono3DHead):
         result_list = []
         for img_id in range(len(batch_img_metas)):
             img_meta = batch_img_metas[img_id]
-            cls_score_list = select_single_mlvl(cls_scores, img_id)
-            bbox_pred_list = select_single_mlvl(bbox_preds, img_id)
+            cls_score_list = select_single_mlvl(cls_scores, img_id, detach=False)
+            bbox_pred_list = select_single_mlvl(bbox_preds, img_id, detach=False)
 
             if self.use_direction_classifier:
-                dir_cls_pred_list = select_single_mlvl(dir_cls_preds, img_id)
+                dir_cls_pred_list = select_single_mlvl(dir_cls_preds, img_id, detach=False)
             else:
                 dir_cls_pred_list = [
                     cls_scores[i][img_id].new_full(
@@ -547,7 +547,7 @@ class FCOSMono3DHead(AnchorFreeMono3DHead):
                 ]
 
             if self.pred_attrs:
-                attr_pred_list = select_single_mlvl(attr_preds, img_id)
+                attr_pred_list = select_single_mlvl(attr_preds, img_id, detach=False)
             else:
                 attr_pred_list = [
                     cls_scores[i][img_id].new_full(
@@ -556,7 +556,7 @@ class FCOSMono3DHead(AnchorFreeMono3DHead):
                     for i in range(num_levels)
                 ]
 
-            centerness_pred_list = select_single_mlvl(centernesses, img_id)
+            centerness_pred_list = select_single_mlvl(centernesses, img_id, detach=False)
             results = self._predict_by_feat_single(
                 cls_score_list=cls_score_list,
                 bbox_pred_list=bbox_pred_list,
@@ -681,7 +681,6 @@ class FCOSMono3DHead(AnchorFreeMono3DHead):
         mlvl_bboxes_for_nms = xywhr2xyxyr(img_meta['box_type_3d'](
             mlvl_bboxes, box_dim=self.bbox_code_size,
             origin=(0.5, 0.5, 0.5)).bev)
-
         mlvl_scores = torch.cat(mlvl_scores)
         padding = mlvl_scores.new_zeros(mlvl_scores.shape[0], 1)
         # remind that we set FG labels to [0, num_class-1] since mmdet v2.0
@@ -709,6 +708,8 @@ class FCOSMono3DHead(AnchorFreeMono3DHead):
         results.bboxes_3d = bboxes
         results.scores_3d = scores
         results.labels_3d = labels
+        results.logits_sum = mlvl_nms_scores.sum(dim=0).expand(len(labels), mlvl_nms_scores.size(1))
+        results.logits_max = mlvl_nms_scores.max(dim=0)[0].expand(len(labels), mlvl_nms_scores.size(1))
         if self.pred_attrs and attrs is not None:
             results.attr_labels = attrs
 

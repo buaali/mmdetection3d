@@ -162,11 +162,11 @@ class Pack3DDetInputs(BaseTransform):
                 # `torch.permute()` rather than `np.transpose()`.
                 # Refer to https://github.com/open-mmlab/mmdetection/pull/9533
                 # for more details
-                if img.flags.c_contiguous:
-                    img = to_tensor(img).permute(2, 0, 1).contiguous()
-                else:
-                    img = to_tensor(
-                        np.ascontiguousarray(img.transpose(2, 0, 1)))
+                # if img.flags.c_contiguous:
+                #     img = to_tensor(img).permute(2, 0, 1).contiguous()
+                # else:
+                #     img = to_tensor(
+                #         np.ascontiguousarray(img.transpose(2, 0, 1)))
                 results['img'] = img
 
         for key in [

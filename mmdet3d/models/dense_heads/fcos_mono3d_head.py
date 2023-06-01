@@ -535,10 +535,10 @@ class FCOSMono3DHead(AnchorFreeMono3DHead):
         for img_id in range(len(batch_img_metas)):
             img_meta = batch_img_metas[img_id]
             cls_score_list = select_single_mlvl(cls_scores, img_id, detach=False)
-            bbox_pred_list = select_single_mlvl(bbox_preds, img_id, detach=False)
+            bbox_pred_list = select_single_mlvl(bbox_preds, img_id, detach=True)
 
             if self.use_direction_classifier:
-                dir_cls_pred_list = select_single_mlvl(dir_cls_preds, img_id, detach=False)
+                dir_cls_pred_list = select_single_mlvl(dir_cls_preds, img_id, detach=True)
             else:
                 dir_cls_pred_list = [
                     cls_scores[i][img_id].new_full(
@@ -547,7 +547,7 @@ class FCOSMono3DHead(AnchorFreeMono3DHead):
                 ]
 
             if self.pred_attrs:
-                attr_pred_list = select_single_mlvl(attr_preds, img_id, detach=False)
+                attr_pred_list = select_single_mlvl(attr_preds, img_id, detach=True)
             else:
                 attr_pred_list = [
                     cls_scores[i][img_id].new_full(
